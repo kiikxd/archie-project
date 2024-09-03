@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import ReactLenis from "@studio-freight/react-lenis";
-// import LoadingScreen from "./components/loading";
+import LoadingScreen from "./components/loading";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 
@@ -11,15 +11,15 @@ const Template = ({ children }) => {
 
   return (
     <ReactLenis root>
-      {/* {!loadingComplete ? (
+      {!loadingComplete ? (
         <LoadingScreen onComplete={() => setLoadingComplete(true)} />
-      ) : ( */}
-      <>
-        <Navbar />
-        {children}
-        <Footer />
-      </>
-      {/* )} */}
+      ) : (
+        <>
+          <Navbar />
+          {children}
+          <Footer />
+        </>
+      )}
     </ReactLenis>
   );
 };
