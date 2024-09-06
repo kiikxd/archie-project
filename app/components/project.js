@@ -1,13 +1,38 @@
 "use client";
-import { useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
 const Project = () => {
+  const [images, setImages] = useState([]);
   const sectionRef = useRef(null);
   const textRef = useRef(null);
   const imageRefs = useRef([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:1337/api/projects?populate=image"
+        );
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        setImages(
+          data.data.map((item) => ({
+            id: item.id,
+            url: `http://localhost:1337${item.attributes.image.data[0].attributes.url}`,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   useGSAP(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -23,7 +48,7 @@ const Project = () => {
       scrub: true,
     });
 
-    imageRefs.current.forEach((image, index) => {
+    imageRefs.current.forEach((image) => {
       gsap.fromTo(
         image,
         { opacity: 0, x: 100 },
@@ -41,6 +66,20 @@ const Project = () => {
         }
       );
     });
+  }, [images]);
+
+  const addToImgRefs = (el) => {
+    if (el && !imageRefs.current.includes(el)) {
+      imageRefs.current.push(el);
+    }
+  };
+
+  // Group images into chunks of 4
+  const groupedImages = images.reduce((groups, item, index) => {
+    const groupIndex = Math.floor(index / 4);
+    if (!groups[groupIndex]) groups[groupIndex] = [];
+    groups[groupIndex].push(item);
+    return groups;
   }, []);
 
   return (
@@ -73,72 +112,32 @@ const Project = () => {
         </div>
 
         <div className="flex flex-col md:flex-row px-4 md:px-[50px] lg:px-[100px] mt-10 md:mt-0 z-10">
-          <div className="flex flex-col w-full md:w-1/3 md:mr-[30px] lg:mr-[60px] xl:mr-[100px]">
-            <img
-              ref={(el) => imageRefs.current.push(el)}
-              src="./assets/images/rumah1.jpeg"
-              className="w-full h-[300px] md:h-[450px] object-cover"
-            />
-            <img
-              ref={(el) => imageRefs.current.push(el)}
-              src="./assets/images/project1.jpeg"
-              className="w-full h-[300px] md:h-[450px] object-cover mt-8 md:mt-12 lg:mt-32"
-            />
-            <img
-              ref={(el) => imageRefs.current.push(el)}
-              src="./assets/images/project5.jpeg"
-              className="w-full h-[300px] md:h-[450px] object-cover mt-8 md:mt-12 lg:mt-32"
-            />
-            <img
-              ref={(el) => imageRefs.current.push(el)}
-              src="./assets/images/project7.jpeg"
-              className="w-full h-[300px] md:h-[450px] object-cover mt-8 md:mt-12 lg:mt-32"
-            />
-          </div>
-          <div className="flex flex-col w-full md:w-1/3 md:mr-[30px] lg:mr-[60px] xl:mr-[100px] mt-10 md:mt-24 lg:mt-[248px]">
-            <img
-              ref={(el) => imageRefs.current.push(el)}
-              src="./assets/images/rumah2.jpeg"
-              className="w-full h-[300px] md:h-[450px] object-cover"
-            />
-            <img
-              ref={(el) => imageRefs.current.push(el)}
-              src="./assets/images/project2.jpeg"
-              className="w-full h-[300px] md:h-[450px] object-cover mt-8 md:mt-12 lg:mt-32"
-            />
-            <img
-              ref={(el) => imageRefs.current.push(el)}
-              src="./assets/images/project4.jpeg"
-              className="w-full h-[300px] md:h-[450px] object-cover mt-8 md:mt-12 lg:mt-32"
-            />
-            <img
-              ref={(el) => imageRefs.current.push(el)}
-              src="./assets/images/project8.jpeg"
-              className="w-full h-[300px] md:h-[450px] object-cover mt-8 md:mt-12 lg:mt-32"
-            />
-          </div>
-          <div className="flex flex-col w-full md:w-1/3 mt-10 md:mt-16 lg:mt-32">
-            <img
-              ref={(el) => imageRefs.current.push(el)}
-              src="/assets/images/project0.jpeg"
-              className="w-full h-[300px] md:h-[450px] object-cover"
-            />
-            <img
-              ref={(el) => imageRefs.current.push(el)}
-              src="./assets/images/project3.jpeg"
-              className="w-full h-[300px] md:h-[450px] object-cover mt-8 md:mt-12 lg:mt-32"
-            />
-            <img
-              ref={(el) => imageRefs.current.push(el)}
-              src="./assets/images/project6.jpeg"
-              className="w-full h-[300px] md:h-[450px] object-cover mt-8 md:mt-12 lg:mt-32"
-            />
-            <img
-              ref={(el) => imageRefs.current.push(el)}
-              src="./assets/images/project9.jpeg"
-              className="w-full h-[300px] md:h-[450px] object-cover mt-8 md:mt-12 lg:mt-32"
-            />
-          </div>
+          {groupedImages.map((group, i) => (
+            <div
+              key={i}
+              className={`flex flex-col w-full md:w-1/3 ${
+                i === 1
+                  ? "mt-10 md:mt-12 lg:mt-[248px]"
+                  : i === 2
+                  ? "mt-10 md:mt-0 lg:mt-32"
+                  : ""
+              } ${i !== 2 ? "md:mr-[30px] lg:mr-[60px] xl:mr-[100px]" : ""}`}
+            >
+              {group.map((item, j) => (
+                <div
+                  key={j}
+                  ref={addToImgRefs}
+                  className={`${j !== 0 ? "mt-8 md:mt-32" : ""}`}
+                >
+                  <img
+                    src={item.url}
+                    className="w-full h-[300px] md:h-[450px] object-cover"
+                    alt="Project Image"
+                  />
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     </section>
